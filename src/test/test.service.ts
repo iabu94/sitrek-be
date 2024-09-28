@@ -1,34 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateTestDto } from './dto/create-test.dto';
+import { UpdateTestDto } from './dto/update-test.dto';
+import { Test } from './entities/test.entity';
 
 @Injectable()
-export class UsersService {
+export class TestService {
   constructor(private dataSource: DataSource) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create({ name, email }: CreateTestDto): Promise<Test> {
     const result = await this.dataSource.query(
       'INSERT INTO test (name, email) VALUES (?, ?)',
-      ['Abdullah', 'a@bc.com'],
+      [name, email],
     );
 
     const insertId = result.insertId;
 
     const user = await this.dataSource.query(
-      'SELECT * FROM test WHERE id = ?',
+      'SELECT id, name, email FROM test WHERE id = ?',
       [insertId],
     );
 
     return user;
   }
 
-  async findAll() {
+  async findAll(): Promise<Test[]> {
     const result = await this.dataSource.query('SELECT * FROM test');
     return result;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<Test> {
     const result = await this.dataSource.query(
       'SELECT * FROM test WHERE id = ?',
       [id],
@@ -36,11 +37,12 @@ export class UsersService {
     return result;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: number, { name, email }: UpdateTestDto): Promise<Test> {
     const result = await this.dataSource.query(
       'UPDATE test SET name = ?, email = ? WHERE id = ?',
-      ['x1', 'y1', id],
+      [name, email, id],
     );
+
     const updated = await this.dataSource.query(
       'SELECT * FROM test WHERE id = ?',
       [id],
@@ -48,7 +50,7 @@ export class UsersService {
     return updated;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: number): boolean {
+    return true;
   }
 }
