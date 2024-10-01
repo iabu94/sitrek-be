@@ -4,6 +4,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RolesModule } from './roles/roles.module';
 import { TestModule } from './test/test.module';
 import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-permissions.module';
 
@@ -13,7 +14,7 @@ import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-
       http: process.env.NODE_ENV !== 'production',
     }),
     ConfigModule.forRoot({
-      isGlobal: true, // Makes ConfigModule available globally
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -25,8 +26,8 @@ import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [], // Add your entities here
-        synchronize: false, // Ensure it's false for production
+        entities: [],
+        synchronize: false,
         extra: {
           engine: 'InnoDB',
         },
@@ -34,6 +35,7 @@ import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-
     }),
     TestModule,
     UserRolesPermissionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
