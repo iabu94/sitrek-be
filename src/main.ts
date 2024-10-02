@@ -7,7 +7,12 @@ async function bootstrap() {
   });
   const globalPrefix = 'api';
   const port = 3000;
+
   app.setGlobalPrefix(globalPrefix);
+  app.enableCors({
+    origin: 'http://localhost:4200',
+  });
+
   await app.listen(port);
 }
 bootstrap();

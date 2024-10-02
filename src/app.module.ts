@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { RolesModule } from './roles/roles.module';
 import { TestModule } from './test/test.module';
 import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-permissions.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-
     TestModule,
     UserRolesPermissionsModule,
     RolesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
