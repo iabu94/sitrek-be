@@ -17,7 +17,8 @@ CREATE TABLE sitrek_user_roles_permissions (
     permissionId INT,
     FOREIGN KEY (userId) REFERENCES josyd_users(id),
     FOREIGN KEY (roleId) REFERENCES sitrek_roles(id),
-    FOREIGN KEY (permissionId) REFERENCES sitrek_permissions(id)
+    FOREIGN KEY (permissionId) REFERENCES sitrek_permissions(id),
+    UNIQUE INDEX unique_user_role (userId, roleId, permissionId)
 )ENGINE=InnoDB;
 
 

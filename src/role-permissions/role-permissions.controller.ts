@@ -1,11 +1,11 @@
 import { Controller, Get, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
-import { PermissionsService } from './permissions.service';
+import { RolePermissionsService } from './role-permissions.service';
 
-@Controller('permissions')
-export class PermissionsController {
-  constructor(private readonly service: PermissionsService) {}
+@Controller('role-permissions')
+export class RolePermissionsController {
+  constructor(private readonly service: RolePermissionsService) {}
 
   @Get()
   async findAll(@Res() response: Response) {

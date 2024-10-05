@@ -1,7 +1,16 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Res,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
-import { CreateUserRolesPermissionsDto } from './dto/create-user-roles-permissions.dto';
+import { CreateUserRolePermissionRequest } from './dto/create-user-roles-permissions.dto';
 import { UserRolesPermissionsService } from './user-roles-permissions.service';
 
 @Controller('user-roles-permissions')
@@ -9,21 +18,28 @@ export class UserRolesPermissionsController {
   constructor(private readonly service: UserRolesPermissionsService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
-    @Req() request: any,
     @Res() response: Response,
-    @Body() createRequest: CreateUserRolesPermissionsDto[],
+    @Body() createRequest: CreateUserRolePermissionRequest,
   ) {
     try {
       const records = [];
 
-      for (const createDto of createRequest) {
-        const record = await this.service.create(createDto);
+      //delete all the permissions
+      await this.service.deleteAllByUser(createRequest.userId);
+
+      //create permission again
+      for (const createDto of createRequest.items) {
+        const record = await this.service.create(
+          createRequest.userId,
+          createDto,
+        );
         records.push(record);
       }
       return response.status(StatusCodes.OK).json({
         statusCode: StatusCodes.OK,
-        message: 'Added user role permission successfully',
+        message: 'Update user roles and permissions successfully',
         body: {
           ...records,
         },

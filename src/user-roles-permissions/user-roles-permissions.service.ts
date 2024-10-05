@@ -32,13 +32,18 @@ export class UserRolesPermissionsService {
     }));
   }
 
-  async create({
-    userId,
-    roleId,
-    permissionId,
-  }: CreateUserRolesPermissionsDto): Promise<UserRolesPermissions> {
+  async deleteAllByUser(userId: number) {
+    await this.dataSource.query(`DELETE FROM ${tableName} WHERE userId = ?`, [
+      userId,
+    ]);
+  }
+  async create(
+    userId: number,
+    { roleId, permissionId }: CreateUserRolesPermissionsDto,
+  ): Promise<UserRolesPermissions> {
     const result = await this.dataSource.query(
-      `INSERT INTO ${tableName} (userId, roleId, permissionId) VALUES (?, ?, ?)`,
+      `INSERT INTO ${tableName} (userId, roleId, permissionId)
+        VALUES (?, ?, ?)`,
       [userId, roleId, permissionId],
     );
 
@@ -56,20 +61,33 @@ export class UserRolesPermissionsService {
   async getByUserId(id: number): Promise<UserRolesPermissions[]> {
     const result = await this.dataSource.query(
       `SELECT 
-      urp.id as id,
-      urp.userId as userId,
-      urp.roleId as roleId,
-      urp.permissionId as permissionId,
-      r.name as roleName,
-      p.name as permissionName,
-      u.username as userName
-      FROM ${tableName} as urp 
-      JOIN josyd_users as u ON u.id = urp.userId 
-      JOIN sitrek_roles as r ON r.id = urp.roleId 
-      JOIN sitrek_permissions p ON p.id = urp.permissionId
-      WHERE userId = ?`,
+    urp.userId AS userId,
+    u.username AS userName,
+    urp.roleId AS roleId,
+    r.name AS roleName,
+    CONCAT('[', GROUP_CONCAT(
+        CONCAT('{"id": ', p.id, ', "name": "', p.name, '"}')
+    ), ']') AS permissions
+FROM 
+    ${tableName} AS urp
+JOIN 
+    josyd_users AS u ON u.id = urp.userId
+JOIN 
+    sitrek_roles AS r ON r.id = urp.roleId
+JOIN 
+    sitrek_permissions AS p ON p.id = urp.permissionId
+WHERE 
+    urp.userId = ?
+GROUP BY 
+    urp.userId, u.username, urp.roleId, r.name;
+
+`,
       [id],
     );
-    return result;
+
+    return result.map((role) => ({
+      ...role,
+      permissions: JSON.parse(role.permissions),
+    })) as UserRolesPermissions[];
   }
 }
