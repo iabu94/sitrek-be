@@ -5,9 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 import { RolesModule } from './roles/roles.module';
 import { TestModule } from './test/test.module';
 import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-permissions.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-
     UserRolesPermissionsModule,
     RolesModule,
     AuthModule,
+    UsersModule,
+    RolePermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
