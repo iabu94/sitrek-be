@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 
@@ -14,6 +14,24 @@ export class AuthController {
         statusCode: 200,
         message: 'Retrieved user permissions successfully',
         body: { ...permissions },
+      });
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Something went wrong',
+        error: error.message,
+        statusCode: 500,
+      });
+    }
+  }
+
+  @Post('login')
+  async login(@Req() req: any, @Res() response: Response, @Body() body: any) {
+    try {
+      const token = await this.authService.login(body);
+      return response.status(200).json({
+        statusCode: 200,
+        message: 'Logged in successfully',
+        body: { ...token },
       });
     } catch (error) {
       return response.status(500).json({

@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma.service';
 import { DataSource } from 'typeorm';
 
@@ -7,6 +9,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private dataSource: DataSource,
+    private jwtService: JwtService,
   ) {}
 
   async prismaOutput(userId: number) {
@@ -61,5 +64,29 @@ export class AuthService {
       },
       permissions: [...userInfo.map((p) => p.permission_name)],
     };
+  }
+
+  async login({ username, password }: any) {
+    const res = await this.dataSource.query(
+      `
+      SELECT id, username, email, name, password
+      FROM josyd_users
+      WHERE username = ?
+      LIMIT 1;`,
+      [username],
+    );
+
+    const isValid = await bcrypt.compare(
+      password,
+      res[0].password.replace('$2y$', '$2b$'),
+    );
+
+    if (!isValid) {
+      throw new Error('Invalid username or password');
+    }
+
+    const token = this.jwtService.sign({ ...res[0] });
+
+    return { token };
   }
 }
