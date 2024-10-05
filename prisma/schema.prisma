@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,72 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model josyd_users {
+  id                            Int                             @id @default(autoincrement())
+  name                          String                          @default("") @db.VarChar(400)
+  username                      String                          @default("") @db.VarChar(150)
+  email                         String                          @default("") @db.VarChar(100)
+  password                      String                          @default("") @db.VarChar(100)
+  block                         Int                             @default(0) @db.TinyInt
+  sendEmail                     Int?                            @default(0) @db.TinyInt
+  registerDate                  DateTime                        @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
+  lastvisitDate                 DateTime                        @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
+  activation                    String                          @default("") @db.VarChar(100)
+  params                        String                          @db.Text
+  lastResetTime                 DateTime                        @default(dbgenerated("'0000-00-00 00:00:00'")) @db.DateTime(0)
+  resetCount                    Int                             @default(0)
+  otpKey                        String                          @default("") @db.VarChar(1000)
+  otep                          String                          @default("") @db.VarChar(1000)
+  requireReset                  Int                             @default(0) @db.TinyInt
+  isBranchDefault               Int                             @default(0) @db.TinyInt
+  isAllowedToRS                 Int                             @default(0) @db.TinyInt
+  isAllowedToRSDate             DateTime                        @default(dbgenerated("'0000-00-00'")) @db.Date
+  blockRSnRECP                  Int                             @default(0) @db.TinyInt
+  isAllowedToRS2                Int                             @default(0) @db.TinyInt
+  isAllowedToRSDate2            DateTime                        @default(dbgenerated("'0000-00-00'")) @db.Date
+  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
+}
+
+model josyd_user_keys {
+  id       Int    @id @default(autoincrement()) @db.UnsignedInt
+  user_id  String @db.VarChar(150)
+  token    String @db.VarChar(255)
+  series   String
+  invalid  Int    @db.TinyInt
+  time     String @db.VarChar(200)
+  uastring String @db.VarChar(255)
+}
+
+model sitrek_permissions {
+  id                            Int                             @id @default(autoincrement())
+  roleId                        Int?
+  name                          String                          @db.VarChar(255)
+  sitrek_roles                  sitrek_roles?                   @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_permissions_ibfk_1")
+  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
+
+  @@index([roleId], map: "roleId")
+}
+
+model sitrek_roles {
+  id                            Int                             @id @default(autoincrement())
+  name                          String                          @db.VarChar(255)
+  sitrek_permissions            sitrek_permissions[]
+  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
+}
+
+model sitrek_user_roles_permissions {
+  id                 Int                 @id @default(autoincrement())
+  userId             Int?
+  roleId             Int?
+  permissionId       Int?
+  josyd_users        josyd_users?        @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_1")
+  sitrek_roles       sitrek_roles?       @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_2")
+  sitrek_permissions sitrek_permissions? @relation(fields: [permissionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_3")
+
+  @@index([permissionId], map: "permissionId")
+  @@index([roleId], map: "roleId")
+  @@index([userId], map: "userId")
 }

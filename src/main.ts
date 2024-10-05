@@ -7,6 +7,7 @@ async function bootstrap() {
   });
   const globalPrefix = 'api';
   const port = 3000;
+  app.enableCors({ origin: '*' });
   app.setGlobalPrefix(globalPrefix);
   await app.listen(port);
 }

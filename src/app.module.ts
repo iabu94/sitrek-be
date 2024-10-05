@@ -4,6 +4,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { TestModule } from './test/test.module';
 import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-permissions.module';
@@ -36,6 +37,7 @@ import { UserRolesPermissionsModule } from './user-roles-permissions/user-roles-
     TestModule,
     UserRolesPermissionsModule,
     RolesModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
