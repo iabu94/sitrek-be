@@ -14,7 +14,7 @@ export class UserRolesPermissionsService {
     const result = await this.dataSource.query(
       `SELECT 
         u.id AS userId,
-        u.username AS user,
+        u.name AS user,
         (SELECT r.name 
          FROM sitrek_roles AS r 
          JOIN ${tableName} AS urp2 ON r.id = urp2.roleId 
