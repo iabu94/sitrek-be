@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 
-const tableName = 'josyd_users';
-
 @Injectable()
 export class UsersService {
   constructor(private dataSource: DataSource) {}
@@ -12,10 +10,26 @@ export class UsersService {
     const result = await this.dataSource.query(
       `SELECT 
       r.id as id,
-      r.name as name,
-      r.username as username,
-      r.email as email
-      FROM ${tableName} as r`,
+      r.privacy as privacy,
+      r.firstname as firstname,
+      r.secondname as secondname,
+      r.lastname as lastname,
+      r.avatar as avatar,
+      r.params as params,
+      r.facebook_id as facebookId,
+      r.twitter_id as twitterId,
+      r.google_id as googleId,
+      r.linkedin_id as linkedinId,
+      r.instagram_id as instagramId,
+      r.address as address,
+      r.phone_number as phoneNumber,
+      r.nic as nic,
+      r.type as type,
+      u.name as name,
+      u.username as username,
+      u.email as email
+    FROM josyd_jsn_users as r
+    INNER JOIN josyd_users as u ON r.id = u.id`,
     );
     return result;
   }
@@ -24,11 +38,27 @@ export class UsersService {
     const result = await this.dataSource.query(
       `SELECT 
       r.id as id,
-      r.name as name,
-      r.username as username,
-      r.email as email
-      FROM ${tableName} as r
-      WHERE r.id = ?`,
+      r.privacy as privacy,
+      r.firstname as firstname,
+      r.secondname as secondname,
+      r.lastname as lastname,
+      r.avatar as avatar,
+      r.params as params,
+      r.facebook_id as facebookId,
+      r.twitter_id as twitterId,
+      r.google_id as googleId,
+      r.linkedin_id as linkedinId,
+      r.instagram_id as instagramId,
+      r.address as address,
+      r.phone_number as phoneNumber,
+      r.nic as nic,
+      r.type as type,
+      u.name as name,
+      u.username as username,
+      u.email as email
+    FROM josyd_jsn_users as r
+    INNER JOIN josyd_users as u ON r.id = u.id
+    WHERE r.id = ?`,
       [id],
     );
 

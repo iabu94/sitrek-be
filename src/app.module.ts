@@ -4,6 +4,8 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CitiesModule } from './cities/cities.module';
+import { LeadsModule } from './crm/leads/leads.module';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 import { RolesModule } from './roles/roles.module';
 import { TestModule } from './test/test.module';
@@ -40,6 +42,8 @@ import { UsersModule } from './users/users.module';
     RolesModule,
     UsersModule,
     RolePermissionsModule,
+    CitiesModule,
+    LeadsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
