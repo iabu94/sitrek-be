@@ -4,6 +4,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { CitiesModule } from './cities/cities.module';
 import { LeadsModule } from './crm/leads/leads.module';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
@@ -14,6 +15,7 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    AuthModule,
     DevtoolsModule.register({
       http: process.env.NODE_ENV !== 'production',
     }),

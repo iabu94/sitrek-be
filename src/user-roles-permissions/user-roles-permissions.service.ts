@@ -14,11 +14,11 @@ export class UserRolesPermissionsService {
     const result = await this.dataSource.query(
       `SELECT 
         u.id AS userId,
-        u.username AS user,
-        (SELECT r.name 
-         FROM sitrek_roles AS r 
-         JOIN ${tableName} AS urp2 ON r.id = urp2.roleId 
-         WHERE urp2.userId = urp.userId 
+        u.name AS user,
+        (SELECT r.name
+         FROM sitrek_roles AS r
+         JOIN ${tableName} AS urp2 ON r.id = urp2.roleId
+         WHERE urp2.userId = urp.userId
          ORDER BY urp2.id LIMIT 1) AS role,
         GROUP_CONCAT(DISTINCT p.name) AS permissions
       FROM josyd_users AS u
@@ -61,31 +61,22 @@ export class UserRolesPermissionsService {
   async getByUserId(id: number): Promise<UserRolesPermissions[]> {
     const result = await this.dataSource.query(
       `SELECT 
-    urp.userId AS userId,
-    u.username AS userName,
-    urp.roleId AS roleId,
-    r.name AS roleName,
-    CONCAT('[', GROUP_CONCAT(
-        CONCAT('{"id": ', p.id, ', "name": "', p.name, '"}')
-    ), ']') AS permissions
-FROM 
-    ${tableName} AS urp
-JOIN 
-    josyd_users AS u ON u.id = urp.userId
-JOIN 
-    sitrek_roles AS r ON r.id = urp.roleId
-JOIN 
-    sitrek_permissions AS p ON p.id = urp.permissionId
-WHERE 
-    urp.userId = ?
-GROUP BY 
-    urp.userId, u.username, urp.roleId, r.name;
-
-`,
+      urp.userId AS userId, 
+      u.username AS userName, 
+      urp.roleId AS roleId, 
+      r.name AS roleName,
+      CONCAT('[', GROUP_CONCAT(
+        CONCAT('{"id": ', p.id, ', "name": "', p.name, '"}')), ']') AS permissions
+      FROM ${tableName} AS urp
+      JOIN josyd_users AS u ON u.id = urp.userId
+      JOIN sitrek_roles AS r ON r.id = urp.roleId
+      JOIN sitrek_permissions AS p ON p.id = urp.permissionId
+      WHERE urp.userId = ?
+      GROUP BY urp.userId, u.username, urp.roleId, r.name;`,
       [id],
     );
 
-    return result.map((role) => ({
+    return result.map((role: any) => ({
       ...role,
       permissions: JSON.parse(role.permissions),
     })) as UserRolesPermissions[];

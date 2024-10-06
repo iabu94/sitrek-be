@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as b from 'bcrypt';
 import { DataSource } from 'typeorm';
 import { CreateTestDto } from './dto/create-test.dto';
 import { UpdateTestDto } from './dto/update-test.dto';
@@ -7,6 +8,15 @@ import { Test } from './entities/test.entity';
 @Injectable()
 export class TestService {
   constructor(private dataSource: DataSource) {}
+
+  async getPassword() {
+    const password = await this.dataSource.query(
+      'SELECT password FROM josyd_users WHERE username = ?',
+      ['test'],
+    );
+    const result = await b.compare('sitrek@123', password[0].password);
+    return result;
+  }
 
   async create({ name, email }: CreateTestDto): Promise<Test> {
     const result = await this.dataSource.query(
@@ -26,6 +36,16 @@ export class TestService {
 
   async findAll(): Promise<Test[]> {
     const result = await this.dataSource.query('SELECT * FROM test');
+    const password = await this.dataSource.query(
+      'SELECT password FROM josyd_users WHERE username = ? limit 1',
+      ['test'],
+    );
+    const result1 = await b.compare(
+      'sitrek@123',
+      password.replace('$2y$', '$2b$'),
+    );
+    const encrypted = await b.hash('sitrek@123', 10);
+
     return result;
   }
 
