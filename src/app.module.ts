@@ -13,6 +13,7 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    AuthModule,
     DevtoolsModule.register({
       http: process.env.NODE_ENV !== 'production',
     }),
@@ -39,7 +40,6 @@ import { UsersModule } from './users/users.module';
     TestModule,
     UserRolesPermissionsModule,
     RolesModule,
-    AuthModule,
     UsersModule,
     RolePermissionsModule,
   ],
