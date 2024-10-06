@@ -7,5 +7,5 @@
     "source.sortImports": "always"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "cSpell.words": ["josyd"]
+  "cSpell.words": ["josyd", "sitrek"]
 }

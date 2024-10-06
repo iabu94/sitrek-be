@@ -10,9 +10,7 @@ export class RolesService {
 
   async findAll(): Promise<Role[]> {
     const result = await this.dataSource.query(
-      `SELECT 
-      r.id as id,
-      r.name as name
+      `SELECT r.id as id, r.name as name
       FROM ${tableName} as r`,
     );
     return result;
