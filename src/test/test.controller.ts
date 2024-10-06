@@ -45,6 +45,8 @@ export class TestController {
 
   @Get()
   async findAll(@Req() request: any, @Res() response: Response) {
+    console.log('findAll');
+
     try {
       const tests = await this.testService.findAll();
       return response.status(StatusCodes.OK).json({
@@ -98,6 +100,26 @@ export class TestController {
         body: { ...test },
       });
     } catch (error) {
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  @Get('password')
+  async getPassword(@Req() request: any, @Res() response: Response) {
+    try {
+      const password = await this.testService.getPassword();
+      return response.status(StatusCodes.OK).json({
+        statusCode: StatusCodes.OK,
+        message: 'Retrieved password successfully',
+        body: { password },
+      });
+    } catch (error) {
+      console.log('error', error);
+
       return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
         message: 'Something went wrong',
         error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
