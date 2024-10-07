@@ -13,22 +13,21 @@ export class UserRolesPermissionsService {
   async findAll(): Promise<UserRolesPermissionsDto[]> {
     const result = await this.dataSource.query(
       `SELECT 
-        u.id AS userId,
-        u.name AS user,
-        (SELECT r.name
-         FROM sitrek_roles AS r
-         JOIN ${tableName} AS urp2 ON r.id = urp2.roleId
-         WHERE urp2.userId = urp.userId
-         ORDER BY urp2.id LIMIT 1) AS role,
-        GROUP_CONCAT(DISTINCT p.name) AS permissions
-      FROM josyd_users AS u
-      LEFT JOIN ${tableName} AS urp ON u.id = urp.userId
-      LEFT JOIN sitrek_permissions AS p ON p.id = urp.permissionId
-      GROUP BY u.username`,
+    u.id AS userId,
+    u.name AS user,
+    r.name AS role,
+    r.description AS description,
+    CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('{"name": "', REPLACE(p.name, '"', '\"'), '", "description": "', REPLACE(p.description, '"', '\"'), '"}')), ']') AS permissions
+FROM josyd_users AS u
+LEFT JOIN ${tableName} AS urp ON u.id = urp.userId
+LEFT JOIN sitrek_roles AS r ON r.id = urp.roleId
+LEFT JOIN sitrek_permissions AS p ON p.id = urp.permissionId
+GROUP BY u.id, u.name, r.name, r.description;
+`,
     );
     return result.map((user) => ({
       ...user,
-      permissions: user.permissions ? user.permissions.split(',') : [],
+      permissions: user.permissions ? JSON.parse(user.permissions) : [],
     }));
   }
 
@@ -65,14 +64,17 @@ export class UserRolesPermissionsService {
       u.username AS userName, 
       urp.roleId AS roleId, 
       r.name AS roleName,
+      r.description AS description,
       CONCAT('[', GROUP_CONCAT(
-        CONCAT('{"id": ', p.id, ', "name": "', p.name, '"}')), ']') AS permissions
-      FROM ${tableName} AS urp
-      JOIN josyd_users AS u ON u.id = urp.userId
-      JOIN sitrek_roles AS r ON r.id = urp.roleId
-      JOIN sitrek_permissions AS p ON p.id = urp.permissionId
-      WHERE urp.userId = ?
-      GROUP BY urp.userId, u.username, urp.roleId, r.name;`,
+        CONCAT('{"id": ', p.id, ', "name": "', p.name, '", "description": "', p.description, '"}')
+      ), ']') AS permissions
+FROM ${tableName} AS urp
+JOIN josyd_users AS u ON u.id = urp.userId
+JOIN sitrek_roles AS r ON r.id = urp.roleId
+JOIN sitrek_permissions AS p ON p.id = urp.permissionId
+WHERE urp.userId = ?
+GROUP BY urp.userId, u.username, urp.roleId, r.name, r.description;
+`,
       [id],
     );
 

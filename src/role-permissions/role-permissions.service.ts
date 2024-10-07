@@ -13,13 +13,14 @@ export class RolePermissionsService {
       `SELECT 
     r.id AS id,
     r.name AS name,
+    r.description AS description,
     CONCAT('[', GROUP_CONCAT(
-        CONCAT('{"id": ', p.id, ', "name": "', p.name, '"}')
+        CONCAT('{"id": ', p.id, ', "name": "', p.name, '", "description": "', p.description, '"}')
     ), ']') AS permissions
 FROM 
     sitrek_roles r
 LEFT JOIN 
-    ${tableName} p ON r.id = p.roleId
+    sitrek_permissions p ON r.id = p.roleId
 GROUP BY 
     r.id, r.name;`,
     );
