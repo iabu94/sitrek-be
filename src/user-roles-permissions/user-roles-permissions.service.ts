@@ -17,12 +17,27 @@ export class UserRolesPermissionsService {
     u.name AS user,
     r.name AS role,
     r.description AS description,
-    CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('{"name": "', REPLACE(p.name, '"', '\"'), '", "description": "', REPLACE(p.description, '"', '\"'), '"}')), ']') AS permissions
+    IF(r.id IS NOT NULL, 
+       CONCAT(
+           '[', 
+           GROUP_CONCAT(DISTINCT CONCAT('{"name": "', REPLACE(IFNULL(p.name, ''), '"', '\"'), '", "description": "', REPLACE(IFNULL(p.description, ''), '"', '\"'), '"}')), 
+           ']'
+       ),
+       '[]'
+    ) AS permissions
 FROM josyd_users AS u
-LEFT JOIN ${tableName} AS urp ON u.id = urp.userId
+LEFT JOIN (
+    SELECT 
+        urp.userId,
+        MIN(urp.roleId) AS min_role_id
+    FROM ${tableName} AS urp
+    GROUP BY urp.userId
+) AS FirstRole ON u.id = FirstRole.userId
+LEFT JOIN ${tableName} AS urp ON u.id = urp.userId AND urp.roleId = FirstRole.min_role_id
 LEFT JOIN sitrek_roles AS r ON r.id = urp.roleId
 LEFT JOIN sitrek_permissions AS p ON p.id = urp.permissionId
 GROUP BY u.id, u.name, r.name, r.description;
+;
 `,
     );
     return result.map((user) => ({

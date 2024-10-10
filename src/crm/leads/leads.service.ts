@@ -50,8 +50,12 @@ export class LeadsService {
           payload.lead.sscl,
           payload.lead.discount,
           payload.lead.discountType,
-          new Date(payload.lead.startDate).toISOString().split('T')[0],
-          new Date(payload.lead.endDate).toISOString().split('T')[0],
+          payload.lead.startDate
+            ? new Date(payload.lead.startDate).toISOString().split('T')[0]
+            : null,
+          payload.lead.endDate
+            ? new Date(payload.lead.endDate).toISOString().split('T')[0]
+            : null,
         ],
       );
 
@@ -226,5 +230,140 @@ GROUP BY l.id;
         followups: leads.followups ? JSON.parse(leads.followups) : [],
       };
     });
+  }
+
+  async findById(leadId: number): Promise<Lead | null> {
+    await this.dataSource.query(`SET SESSION group_concat_max_len = 10000;`);
+    const result = await this.dataSource.query(
+      `SELECT 
+      l.*,  -- Fetching all columns from sitrek_leads
+      
+      -- Fetching districtId based on cityId
+      d.id as districtId,  
+      c.postalCode as postalCode,
+
+      -- Fetching owner details as a JSON-like string
+      CONCAT('{',
+          '"id": ', IFNULL(o.id, 'null'), ', ',
+          '"name": "', IFNULL(REPLACE(o.name, '"', '\\"'), ''), '", ',
+          '"email": "', IFNULL(REPLACE(o.email, '"', '\\"'), ''), '"'
+      , '}') AS owner,
+
+      -- Fetching salesperson details as a JSON-like string
+      CONCAT('{',
+          '"id": ', IFNULL(sp.id, 'null'), ', ',
+          '"name": "', IFNULL(REPLACE(sp.name, '"', '\\"'), ''), '", ',
+          '"email": "', IFNULL(REPLACE(sp.email, '"', '\\"'), ''), '"'
+      , '}') AS salesPerson,
+
+      -- Fetching followups as a JSON array of objects
+      CONCAT('[', 
+          IFNULL(
+              GROUP_CONCAT(DISTINCT
+                  CONCAT(
+                      '{',
+                          '"id": ', f.id, ', ',
+                          '"contactDate": "', IFNULL(f.contactDate, ''), '", ',
+                          '"contactById": ', IFNULL(u.id, 'null'), ', ',
+                          '"contactByName": "', IFNULL(REPLACE(u.name, '"', '\\"'), ''), '", ',
+                          '"contactByEmail": "', IFNULL(REPLACE(u.email, '"', '\\"'), ''), '", ',
+                          '"note": "', IFNULL(REPLACE(f.note, '"', '\\"'), ''), '", ',
+                          '"status": "', IFNULL(f.status, ''), '"',
+                      '}'
+                  ) SEPARATOR ','
+              ), ''
+          ), 
+      ']') AS followups,
+
+      -- Fetching rate cards as a JSON array of objects
+      CONCAT('[', 
+          IFNULL(
+              GROUP_CONCAT(DISTINCT
+                  CONCAT(
+                      '{',
+                          '"id": ', rc.id, ', ',
+                          '"demarcation": "', IFNULL(REPLACE(rc.demarcation, '"', '\\"'), ''), '", ',
+                          '"category": "', IFNULL(REPLACE(rc.catogory, '"', '\\"'), ''), '", ',
+                          '"paymentType": "', IFNULL(REPLACE(rc.paymentType, '"', '\\"'), ''), '", ',
+                          '"initialRate": ', IFNULL(rc.initialRate, '0'), ', ',
+                          '"additionalRate": ', IFNULL(rc.additionalRate, '0'), 
+                      '}'
+                  ) SEPARATOR ','
+              ), ''
+          ), 
+      ']') AS rateCards,
+
+      -- Fetching attachments as a JSON array of objects
+      CONCAT('[', 
+    IFNULL(
+        GROUP_CONCAT(DISTINCT
+            CONCAT(
+                '{',
+                    '"id": ', IFNULL(att.id, 'null'), ', ',
+                    '"verifiedById": ', IFNULL(att.verifiedById, 'null'), ', ',
+                    '"fullUrl": "', IFNULL(REPLACE(att.fullUrl, '"', '\\"'), ''), '", ',
+                    '"status": "', IFNULL(REPLACE(att.status, '"', '\\"'), '') ,'"',
+                '}'
+            ) SEPARATOR ','
+        ), ''
+    ), 
+']') AS attachments
+
+  
+    FROM sitrek_leads AS l
+  
+    -- Join to get owner details (ownerId)
+    LEFT JOIN josyd_users AS o ON l.ownerId = o.id
+  
+    -- Join to get salesperson details (salesPersonId)
+    LEFT JOIN josyd_users AS sp ON l.salesPersonId = sp.id
+  
+    -- Join to get followups
+    LEFT JOIN sitrek_lead_followups AS f ON l.id = f.leadId
+  
+    -- Join to get the contact person's details (contactById)
+    LEFT JOIN josyd_users AS u ON f.contactById = u.id
+    
+    -- Join districts table using cityId to get districtId
+    LEFT JOIN sitrek_cities AS c ON l.cityId = c.id
+    LEFT JOIN sitrek_districts AS d ON c.districtId = d.id
+
+    -- Join to get rate cards
+    LEFT JOIN sitrek_rate_cards AS rc ON l.id = rc.leadId
+
+    -- Join to get attachments
+    LEFT JOIN sitrek_lead_attachments AS att ON l.id = att.leadId
+    
+    WHERE l.id = ?
+    
+    GROUP BY l.id;
+  `,
+      [leadId],
+    );
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const lead = result[0];
+
+    return {
+      ...lead,
+      districtId: lead.districtId, // Add districtId to the returned object
+      owner: lead.owner ? JSON.parse(lead.owner) : null,
+      salesPerson: lead.salesPerson ? JSON.parse(lead.salesPerson) : null,
+      followups: lead.followups ? JSON.parse(lead.followups) : [],
+      rateCards: lead.rateCards ? JSON.parse(lead.rateCards) : [],
+      attachments: lead.attachments ? JSON.parse(lead.attachments) : [],
+    };
+  }
+
+  async findNotes(leadId: number): Promise<any> {
+    const result = await this.dataSource.query(
+      `SELECT * FROM sitrek_lead_notes WHERE leadId = ?`,
+      [leadId],
+    );
+
+    return result;
   }
 }

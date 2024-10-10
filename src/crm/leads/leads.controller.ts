@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { CreateLeadPayload } from './dto/create-lead.dto';
@@ -27,7 +27,7 @@ export class LeadsController {
       });
     }
   }
-  
+
   @Get()
   async findAll(@Res() response: Response) {
     try {
@@ -36,6 +36,40 @@ export class LeadsController {
         statusCode: StatusCodes.OK,
         message: 'Retrieved all role permissions successfully',
         body: [...records],
+      });
+    } catch (error) {
+      console.log(error, 'error');
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Param() params: { id: number }, @Res() response: Response) {
+    try {
+      const record = await this.service.findById(params.id);
+      return response.status(StatusCodes.OK).json(record);
+    } catch (error) {
+      console.log(error, 'error');
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  @Get(':id/notes')
+  async findNotes(@Param() params: { id: number }, @Res() response: Response) {
+    try {
+      const record = await this.service.findNotes(params.id);
+      return response.status(StatusCodes.OK).json({
+        statusCode: StatusCodes.OK,
+        message: 'Retrieved all notes successfully',
+        body: [...record],
       });
     } catch (error) {
       console.log(error, 'error');

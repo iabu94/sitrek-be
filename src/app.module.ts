@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CitiesModule } from './cities/cities.module';
 import { LeadsModule } from './crm/leads/leads.module';
+import { FileController } from './files/files.controller';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 import { RolesModule } from './roles/roles.module';
 import { TestModule } from './test/test.module';
@@ -47,7 +48,7 @@ import { UsersModule } from './users/users.module';
     CitiesModule,
     LeadsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, FileController],
   providers: [AppService],
 })
 export class AppModule {}

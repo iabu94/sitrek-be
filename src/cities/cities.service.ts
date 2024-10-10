@@ -17,20 +17,30 @@ export class CitiesService {
   }
 
   // Get districts by provinceId
-  async getDistricts(provinceId: number): Promise<District[]> {
-    const districts = await this.dataSource.query(
-      'SELECT id, name FROM sitrek_districts WHERE provinceId = ?',
-      [provinceId],
-    );
-    return districts;
+  async getDistricts(provinceId?: number): Promise<District[]> {
+    if (provinceId) {
+      return await this.dataSource.query(
+        'SELECT id, name FROM sitrek_districts WHERE provinceId = ?',
+        [provinceId],
+      );
+    } else {
+      return await this.dataSource.query(
+        'SELECT id, name FROM sitrek_districts',
+      );
+    }
   }
 
   // Get cities by districtId
-  async getCities(districtId: number): Promise<any> {
-    const cities = await this.dataSource.query(
-      'SELECT id, name, postalCode FROM sitrek_cities WHERE districtId = ?',
-      [districtId],
-    );
-    return cities;
+  async getCities(districtId?: number): Promise<any> {
+    if (districtId) {
+      return await this.dataSource.query(
+        'SELECT id, name, postalCode FROM sitrek_cities WHERE districtId = ?',
+        [districtId],
+      );
+    } else {
+      return await this.dataSource.query(
+        'SELECT id, name, postalCode FROM sitrek_cities',
+      );
+    }
   }
 }
