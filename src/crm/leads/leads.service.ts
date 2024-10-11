@@ -559,7 +559,11 @@ GROUP BY l.id;
     const leadData = await this.prisma.sitrek_leads.findUnique({
       where: { id: +leadId },
       include: {
-        sitrek_lead_followups: true,
+        sitrek_lead_followups: {
+          include: {
+            josyd_users: true,
+          },
+        },
         sitrek_rate_cards: true,
         sitrek_lead_attachments: true,
         sitrek_lead_notes: true,
