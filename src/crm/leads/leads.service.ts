@@ -1,13 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma.service';
 import { DataSource } from 'typeorm';
-import { CreateLeadPayload } from './dto/create-lead.dto';
+import { CreateLeadPayload, UpdateLeadPayload } from './dto/create-lead.dto';
 import { Lead } from './entities/lead.entity';
 
 const tableName = 'sitrek_roles';
 
 @Injectable()
 export class LeadsService {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private prisma: PrismaService,
+  ) {}
 
   async create(payload: CreateLeadPayload): Promise<Lead> {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -20,9 +24,9 @@ export class LeadsService {
       const leadResult = await queryRunner.query(
         `INSERT INTO sitrek_leads (
         id, ownerId, leadtype, leadStatus, salesPersonId, orgName, orgIdType, orgId, addrTitles, addr1, addr2, cityId, provinceId, country, 
-        contactNIC, contactName, contactDesignation, contactEmail, contact1, contact2, adminFee, adminFeeType, vat, sscl, discount, discountType, startDate, endDate
+        contactNIC, contactName, contactDesignation, contactEmail, contact1, contact2, adminFee, adminFeeType, vat, svat, sscl, discount, discountType, startDate, endDate
     ) 
-    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           null,
           payload.lead.ownerId,
@@ -47,6 +51,7 @@ export class LeadsService {
           payload.lead.adminFee,
           payload.lead.adminFeeType,
           payload.lead.vat,
+          payload.lead.svat,
           payload.lead.sscl,
           payload.lead.discount,
           payload.lead.discountType,
@@ -83,7 +88,7 @@ export class LeadsService {
           [
             leadId,
             rateCard.demarcation,
-            rateCard.category,
+            rateCard.catogory,
             rateCard.paymentType,
             rateCard.initialRate,
             rateCard.additionalRate,
@@ -283,7 +288,7 @@ GROUP BY l.id;
                       '{',
                           '"id": ', rc.id, ', ',
                           '"demarcation": "', IFNULL(REPLACE(rc.demarcation, '"', '\\"'), ''), '", ',
-                          '"category": "', IFNULL(REPLACE(rc.catogory, '"', '\\"'), ''), '", ',
+                          '"catogory": "', IFNULL(REPLACE(rc.catogory, '"', '\\"'), ''), '", ',
                           '"paymentType": "', IFNULL(REPLACE(rc.paymentType, '"', '\\"'), ''), '", ',
                           '"initialRate": ', IFNULL(rc.initialRate, '0'), ', ',
                           '"additionalRate": ', IFNULL(rc.additionalRate, '0'), 
@@ -365,5 +370,227 @@ GROUP BY l.id;
     );
 
     return result;
+  }
+
+  async update(data: UpdateLeadPayload) {
+    await this.prisma.$transaction(async (prisma) => {
+      // Step 1: Update the lead
+      await prisma.sitrek_leads.update({
+        data: {
+          ownerId: +data.lead.ownerId,
+          leadtype: data.lead.leadtype,
+          leadStatus: data.lead.leadStatus,
+          salesPersonId: +data.lead.salesPersonId,
+          orgName: data.lead.orgName,
+          orgIdType: data.lead.orgIdType,
+          orgId: data.lead.orgId,
+          addrTitles: data.lead.addrTitles,
+          addr1: data.lead.addr1,
+          addr2: data.lead.addr2 || null,
+          cityId: +data.lead.cityId,
+          provinceId: +data.lead.provinceId,
+          country: data.lead.country,
+          adminFee: data.lead.adminFee,
+          vat: data.lead.vat,
+          sscl: data.lead.sscl,
+          svat: data.lead.svat,
+          discount: data.lead.discount,
+          startDate: new Date(data.lead.startDate),
+          endDate: new Date(data.lead.endDate),
+        },
+        where: { id: data.lead.id },
+      });
+
+      // Step 2: Synchronize follow-ups
+      const followupIds = data.followups
+        .map((followup) => followup.id)
+        .filter(Boolean);
+
+      // Remove follow-ups that are not in the new list
+      await prisma.sitrek_lead_followups.deleteMany({
+        where: {
+          leadId: data.lead.id,
+          id: { notIn: followupIds },
+        },
+      });
+
+      // Update existing follow-ups and create new ones
+      const followupPromises = data.followups.map((followup) => {
+        if (followup.id) {
+          // Update existing follow-up
+          return prisma.sitrek_lead_followups.update({
+            where: { id: followup.id },
+            data: {
+              ...followup,
+              contactDate: followup.contactDate
+                ? new Date(followup.contactDate)
+                : '',
+              leadId: data.lead.id, // Ensure it's associated with the lead
+            },
+          });
+        } else {
+          // Create a new follow-up
+          return prisma.sitrek_lead_followups.create({
+            data: {
+              ...followup,
+              contactDate: followup.contactDate
+                ? new Date(followup.contactDate)
+                : '',
+              leadId: data.lead.id,
+            },
+          });
+        }
+      });
+
+      // Step 3: Synchronize ratecards
+      const ratecardIds = data.rateCards
+        .map((ratecard) => ratecard.id)
+        .filter(Boolean);
+
+      // Delete ratecards not included in the update
+      await prisma.sitrek_rate_cards.deleteMany({
+        where: {
+          leadId: data.lead.id,
+          id: { notIn: ratecardIds },
+        },
+      });
+
+      // Update or create ratecards
+      const ratecardPromises = data.rateCards.map((ratecard) => {
+        if (ratecard.id) {
+          // Update existing ratecard
+          return prisma.sitrek_rate_cards.update({
+            where: { id: ratecard.id }, // Use the correct field
+            data: {
+              ...ratecard,
+              leadId: data.lead.id,
+            },
+          });
+        } else {
+          // Create a new ratecard
+          return prisma.sitrek_rate_cards.create({
+            data: {
+              ...ratecard,
+              leadId: data.lead.id,
+            },
+          });
+        }
+      });
+
+      // Step 4: Synchronize lead attachments
+      const attachmentIds = data.attachments
+        .map((attachment) => attachment.id)
+        .filter(Boolean);
+
+      // Delete attachments not included in the update
+      await prisma.sitrek_lead_attachments.deleteMany({
+        where: {
+          leadId: data.lead.id,
+          id: { notIn: attachmentIds },
+        },
+      });
+
+      // Update or create attachments
+      const attachmentPromises = data.attachments.map((attachment) => {
+        if (attachment.id) {
+          // Update existing attachment
+          return prisma.sitrek_lead_attachments.update({
+            where: { id: attachment.id },
+            data: {
+              ...attachment,
+              leadId: data.lead.id,
+            },
+          });
+        } else {
+          // Create a new attachment
+          return prisma.sitrek_lead_attachments.create({
+            data: {
+              ...attachment,
+              leadId: data.lead.id,
+            },
+          });
+        }
+      });
+
+      // Step 5: Synchronize lead notes
+      const noteIds = data.notes.map((note) => note.id).filter(Boolean);
+
+      // Delete notes not included in the update
+      await prisma.sitrek_lead_notes.deleteMany({
+        where: {
+          leadId: data.lead.id,
+          id: { notIn: noteIds },
+        },
+      });
+
+      // Update or create notes
+      const notePromises = data.notes.map((note) => {
+        if (note.id) {
+          // Update existing note
+          return prisma.sitrek_lead_notes.update({
+            where: { id: note.id },
+            data: {
+              ...note,
+              leadId: data.lead.id,
+            },
+          });
+        } else {
+          // Create a new note
+          return prisma.sitrek_lead_notes.create({
+            data: {
+              ...note,
+              leadId: data.lead.id,
+            },
+          });
+        }
+      });
+
+      // Execute all follow-up, ratecard, attachment, and note operations
+      await Promise.all([
+        ...followupPromises,
+        ...ratecardPromises,
+        ...attachmentPromises,
+        ...notePromises,
+      ]);
+    });
+  }
+
+  async getById(leadId) {
+    const leadData = await this.prisma.sitrek_leads.findUnique({
+      where: { id: +leadId },
+      include: {
+        sitrek_lead_followups: true,
+        sitrek_rate_cards: true,
+        sitrek_lead_attachments: true,
+        sitrek_lead_notes: true,
+        sitrek_cities: {
+          include: {
+            sitrek_districts: true,
+          },
+        },
+      },
+    });
+
+    if (!leadData) {
+      return null;
+    }
+
+    // Rename fields in the result
+    const lead = {
+      ...leadData,
+      followups: leadData.sitrek_lead_followups,
+      rateCards: leadData.sitrek_rate_cards,
+      attachments: leadData.sitrek_lead_attachments,
+      notes: leadData.sitrek_lead_notes,
+      city: leadData.sitrek_cities,
+    };
+
+    // Remove original fields if necessary
+    delete lead.sitrek_lead_followups;
+    delete lead.sitrek_rate_cards;
+    delete lead.sitrek_lead_attachments;
+    delete lead.sitrek_lead_notes;
+
+    return lead;
   }
 }

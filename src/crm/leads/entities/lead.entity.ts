@@ -22,6 +22,7 @@ export interface Lead {
   adminFee: number;
   adminFeeType: string;
   vat: number;
+  svat: number;
   sscl: number;
   discount: number;
   discountType: string;
@@ -41,7 +42,7 @@ export interface RateCard {
   id?: number;
   leadId: number;
   demarcation: string;
-  category: string;
+  catogory: string;
   paymentType: string;
   initialRate: number;
   additionalRate: number;
