@@ -579,11 +579,95 @@ GROUP BY l.id;
       return null;
     }
 
-    // Rename fields in the result
+    // Step 1: Group rate cards by Categories
+    const groupedByCategory = leadData.sitrek_rate_cards.reduce(
+      (acc, rateCard) => {
+        const category = rateCard.catogory;
+
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+
+        const categoryGroup = acc[category];
+
+        // Step 2: Find an existing entry with the same PaymentType, Rate, and Additional
+        const key = `${rateCard.paymentType}-${rateCard.initialRate}-${rateCard.additionalRate}`;
+        let existingGroup = categoryGroup.find(
+          (group) =>
+            group.Rate === rateCard.initialRate &&
+            group.Additional === rateCard.additionalRate &&
+            group.PaymentType === rateCard.paymentType,
+        );
+
+        if (existingGroup) {
+          // Concatenate Demarcation if the group already exists
+          existingGroup.Demarcation = `${existingGroup.Demarcation}, ${rateCard.demarcation}`;
+        } else {
+          // Create a new grouped entry if not found
+          existingGroup = {
+            PaymentType: rateCard.paymentType || '',
+            Demarcation: rateCard.demarcation,
+            Rate: rateCard.initialRate,
+            Additional: rateCard.additionalRate,
+          };
+          categoryGroup.push(existingGroup);
+        }
+
+        return acc;
+      },
+      {},
+    );
+    // Assuming `RateCard` is the type of each item in rateCards
+    const rateCardsGroupedArray = Object.entries(groupedByCategory).map(
+      ([category, rateCards]) => ({
+        Categories: category,
+        rateCars: Object.values(
+          (
+            rateCards as Array<{
+              PaymentType: string;
+              Demarcation: string;
+              Rate: string;
+              Additional: string;
+            }>
+          ).reduce(
+            (innerAcc, rateCard) => {
+              const key = `${rateCard.PaymentType}-${rateCard.Rate}-${rateCard.Additional}`;
+
+              if (!innerAcc[key]) {
+                // Create a new group entry if it doesn't exist
+                innerAcc[key] = {
+                  PaymentType: rateCard.PaymentType,
+                  Demarcation: rateCard.Demarcation,
+                  Rate: rateCard.Rate,
+                  Additional: rateCard.Additional,
+                };
+              } else {
+                // Concatenate Demarcation if the group already exists
+                innerAcc[key].Demarcation += `, ${rateCard.Demarcation}`;
+              }
+
+              return innerAcc;
+            },
+            {} as Record<
+              string,
+              {
+                PaymentType: string;
+                Demarcation: string;
+                Rate: string;
+                Additional: string;
+              }
+            >,
+          ),
+        ),
+      }),
+    );
+
+    // Step 4: Integrate grouped rate cards with lead data
     const lead = {
       ...leadData,
       followups: leadData.sitrek_lead_followups,
       rateCards: leadData.sitrek_rate_cards,
+      rateCardsGrouped: rateCardsGroupedArray,
       attachments: leadData.sitrek_lead_attachments,
       notes: leadData.sitrek_lead_notes,
       city: leadData.sitrek_cities,
