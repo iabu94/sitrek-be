@@ -6,5 +6,6 @@ export class UserRolesPermissions {
   roleId: number;
   roleName: string;
   username: string;
+  description: string;
   permissions: Permission[];
 }
