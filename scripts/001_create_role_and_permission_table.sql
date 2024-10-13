@@ -3,7 +3,7 @@ CREATE TABLE sitrek_roles (
     id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description VARCHAR(255) NOT NULL
-);
+)ENGINE=InnoDB;
 
 CREATE TABLE sitrek_permissions (
     id INT PRIMARY KEY,
@@ -12,7 +12,7 @@ CREATE TABLE sitrek_permissions (
     description VARCHAR(255) NOT NULL,
 
     FOREIGN KEY (roleId) REFERENCES sitrek_roles(id)
-);
+)ENGINE=InnoDB;
 
 CREATE TABLE sitrek_user_roles_permissions (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -25,7 +25,7 @@ CREATE TABLE sitrek_user_roles_permissions (
     FOREIGN KEY (permissionId) REFERENCES sitrek_permissions(id),
 
     UNIQUE INDEX unique_user_role (userId, roleId, permissionId)
-);
+)ENGINE=InnoDB;
 
 -- # Seed Roles
 INSERT INTO `sitrek_roles` (`id`, `name`, `description`) VALUES (99, 'super_admin', 'Super Admin');

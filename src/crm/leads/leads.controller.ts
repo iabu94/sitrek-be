@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Put, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { CreateLeadPayload, UpdateLeadPayload } from './dto/create-lead.dto';
@@ -88,6 +98,50 @@ export class LeadsController {
       return response.status(StatusCodes.OK).json({
         statusCode: StatusCodes.OK,
         message: 'update lead successfully',
+        body: record,
+      });
+    } catch (error) {
+      console.log(error, 'error');
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  @Delete('rateCard')
+  async deleteRateCard(
+    @Query() payload: { cat: string; leadId: number },
+    @Res() response: Response,
+  ) {
+    try {
+      const record = await this.service.deleteRateCard(
+        payload.cat,
+        payload.leadId,
+      );
+      return response.status(StatusCodes.OK).json({
+        statusCode: StatusCodes.OK,
+        message: 'delete rate card successfully',
+        body: record,
+      });
+    } catch (error) {
+      console.log(error, 'error');
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  @Delete(':id')
+  async delete(@Param() payload: { id: number }, @Res() response: Response) {
+    try {
+      const record = await this.service.delete(payload.id);
+      return response.status(StatusCodes.OK).json({
+        statusCode: StatusCodes.OK,
+        message: 'delete rate card successfully',
         body: record,
       });
     } catch (error) {

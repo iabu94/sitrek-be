@@ -58,6 +58,7 @@ CREATE TABLE sitrek_leads (
     orgIdType VARCHAR(255) NOT NULL,
     orgId VARCHAR(255) NOT NULL,
     addrTitles VARCHAR(255) NOT NULL,
+    isDeleted BOOLEAN NOT NULL DEFAULT FALSE,
     addr1 VARCHAR(255) NOT NULL,
     addr2 VARCHAR(255) NOT NULL,
     cityId INT NOT NULL,
@@ -85,9 +86,7 @@ CREATE TABLE sitrek_leads (
 ) ENGINE=InnoDB;
 
 -- Dummy data for sitrek_leads (Note: Modify based on the real salesperson ID from josyd_users table)
-INSERT INTO sitrek_leads (id, ownerId, leadtype, leadStatus, salesPersonId, orgName, orgIdType, orgId, addrTitles, addr1, addr2, cityId, provinceId, country, contactNIC, contactName, contactDesignation, contactEmail, contact1, contact2, adminFee, adminFeeType, vat, sscl, discount, discountType, startDate, endDate) VALUES
-(NULL, 420, 'Corporate', 'Active', 420, 'ABC Company', 'Business Registration', '123456789', 'No 123', 'Galle Road', 'Colombo 03', 1, 1, 'Sri Lanka', '123456789V', 'John Doe', 'CEO', '123456789','123456789','123456789', 1000.00, 'Monthly', 0.00, 0.00, 0.00, 'Percentage', '2024-01-01', '2024-12-31');
-
+INSERT INTO sitrek_leads (id, ownerId, leadtype, leadStatus, salesPersonId, orgName, orgIdType, orgId, addrTitles, addr1, addr2, cityId, provinceId, country, contactNIC, contactName, contactDesignation, contactEmail, contact1, contact2, adminFee, adminFeeType, vat, svat, sscl, discount, discountType, startDate, endDate) VALUES (NULL, 420, 'Corporate', 'Active', 420, 'ABC Company', 'Business Registration', '123456789', 'No 123', 'Galle Road', 'Colombo 03', 1, 1, 'Sri Lanka', '123456789V', 'John Doe', 'CEO', '123456789','123456789','123456789', 1000.00, 'Monthly', 0.00, 0.00, 0.00 ,0.00 , 'Percentage', '2024-01-01', '2024-12-31');
 -- Create table for rate cards
 CREATE TABLE sitrek_rate_cards (
     id INT PRIMARY KEY AUTO_INCREMENT,
