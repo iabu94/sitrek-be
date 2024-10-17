@@ -1,18 +1,18 @@
 -- Create table for provinces
 CREATE TABLE sitrek_provinces (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB;
 
 -- Insert data into sitrek_provinces
 INSERT INTO sitrek_provinces (id, name) VALUES 
-(NULL, 'Western'),
-(NULL, 'Central'),
-(NULL, 'Southern');
+(1, 'Western'),
+(2, 'Central'),
+(3, 'Southern');
 
 -- Create table for districts
 CREATE TABLE sitrek_districts (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     provinceId INT NOT NULL,
     FOREIGN KEY (provinceId) REFERENCES sitrek_provinces(id)
@@ -20,16 +20,16 @@ CREATE TABLE sitrek_districts (
 
 -- Insert data into sitrek_districts
 INSERT INTO sitrek_districts (id, name, provinceId) VALUES 
-(NULL, 'Colombo', 1),
-(NULL, 'Gampaha', 1),
-(NULL, 'Kalutara', 1),
-(NULL, 'Kandy', 2),
-(NULL, 'Matale', 2),
-(NULL, 'Galle', 3);
+(1, 'Colombo', 1),
+(2, 'Gampaha', 1),
+(3, 'Kalutara', 1),
+(4, 'Kandy', 2),
+(5, 'Matale', 2),
+(6, 'Galle', 3);
 
 -- Create table for cities
 CREATE TABLE sitrek_cities (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id INT PRIMARY KEY,
     postalCode VARCHAR(10) NOT NULL,
     name VARCHAR(255) NOT NULL,
     districtId INT NOT NULL,
@@ -38,14 +38,14 @@ CREATE TABLE sitrek_cities (
 
 -- Insert data into sitrek_cities
 INSERT INTO sitrek_cities (id, postalCode, name, districtId) VALUES 
-(NULL, '00100', 'Colombo 01', 1),
-(NULL, '00100', 'Colombo 02', 1),
-(NULL, '00100', 'Colombo 03', 1),
-(NULL, '10100', 'Negombo', 2),
-(NULL, '10200', 'Kalutara', 3),
-(NULL, '20000', 'Kandy', 4),
-(NULL, '21000', 'Matale', 5),
-(NULL, '80000', 'Galle', 6);
+(1, '00100', 'Colombo 01', 1),
+(2, '00100', 'Colombo 02', 1),
+(3, '00100', 'Colombo 03', 1),
+(4, '10100', 'Negombo', 2),
+(5, '10200', 'Kalutara', 3),
+(6, '20000', 'Kandy', 4),
+(7, '21000', 'Matale', 5),
+(8, '80000', 'Galle', 6);
 
 -- Create table for leads
 CREATE TABLE sitrek_leads (
