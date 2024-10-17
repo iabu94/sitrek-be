@@ -174,7 +174,7 @@ export class LeadsService {
     }
   }
 
-  async getALl(): Promise<sitrek_leads[]> {
+  async getAll(): Promise<sitrek_leads[]> {
     const leads = await this.prisma.sitrek_leads.findMany({
       include: {
         sitrek_lead_followups: true,

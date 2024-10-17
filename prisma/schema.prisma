@@ -58,9 +58,9 @@ model josyd_user_keys {
 }
 
 model sitrek_permissions {
-  id                            Int                             @id
+  id                            Int                             @id @default(autoincrement())
   roleId                        Int?
-  name                          String                          @unique(map: "name") @db.VarChar(255)
+  name                          String                          @db.VarChar(255)
   description                   String                          @db.VarChar(255)
   sitrek_roles                  sitrek_roles?                   @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_permissions_ibfk_1")
   sitrek_user_roles_permissions sitrek_user_roles_permissions[]
@@ -69,8 +69,8 @@ model sitrek_permissions {
 }
 
 model sitrek_roles {
-  id                            Int                             @id
-  name                          String                          @unique(map: "name") @db.VarChar(255)
+  id                            Int                             @id @default(autoincrement())
+  name                          String                          @db.VarChar(255)
   description                   String                          @db.VarChar(255)
   sitrek_permissions            sitrek_permissions[]
   sitrek_user_roles_permissions sitrek_user_roles_permissions[]
