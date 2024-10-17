@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { sitrek_leads } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { DataSource } from 'typeorm';
 import { CustomersService } from '../customers/customers.service';
@@ -173,6 +174,41 @@ export class LeadsService {
     }
   }
 
+  async getALl(): Promise<sitrek_leads[]> {
+    const leads = await this.prisma.sitrek_leads.findMany({
+      include: {
+        sitrek_lead_followups: true,
+        sitrek_rate_cards: true,
+        sitrek_lead_attachments: true,
+        sitrek_lead_notes: true,
+        sitrek_cities: {
+          include: {
+            sitrek_districts: true,
+          },
+        },
+        josyd_users_sitrek_leads_ownerIdTojosyd_users: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return leads.map((lead) => ({
+      ...lead,
+      owner: lead.josyd_users_sitrek_leads_ownerIdTojosyd_users,
+      city: lead.sitrek_cities,
+      followups: lead.sitrek_lead_followups,
+      rateCards: lead.sitrek_rate_cards,
+      attachments: lead.sitrek_lead_attachments,
+      notes: lead.sitrek_lead_notes,
+      districts: lead.sitrek_cities.sitrek_districts,
+      // Remove the original fields if necessary
+      josyd_users_sitrek_leads_ownerIdTojosyd_users: undefined,
+      sitrek_cities: undefined,
+    }));
+  }
   async findAll(): Promise<Lead[]> {
     const result = await this.dataSource.query(
       `SELECT 
@@ -194,22 +230,22 @@ export class LeadsService {
     
     -- Fetching followups as a JSON array of objects
     CONCAT('[', 
-        IFNULL(
-            GROUP_CONCAT(
-                CONCAT(
-                    '{',
-                        '"id": ', f.id, ', ',
-                        '"contactDate": "', f.contactDate, '", ',
-                        '"contactById": ', u.id, ', ',
-                        '"contactByName": "', u.name, '", ',
-                        '"contactByEmail": "', u.email, '", ',
-                        '"note": "', f.note, '", ',
-                        '"status": "', f.status, '"',
-                    '}'
-                )
-            ), ''
-        ), 
-    ']') AS followups
+          IFNULL(
+              GROUP_CONCAT(
+                  CONCAT(
+                      '{',
+                          '"id": ', f.id, ', ',
+                          '"contactDate": "', IFNULL(f.contactDate, ''), '", ',
+                          '"contactById": ', IFNULL(u.id, 'null'), ', ',
+                          '"contactByName": "', IFNULL(REPLACE(u.name, '"', '\\"'), ''), '", ',
+                          '"contactByEmail": "', IFNULL(REPLACE(u.email, '"', '\\"'), ''), '", ',
+                          '"note": "', IFNULL(REPLACE(f.note, '"', '\\"'), ''), '", ',
+                          '"status": "', IFNULL(f.status, '') , '"',
+                      '}'
+                  )
+              ), ''
+          ), 
+      ']') AS followups
 
 FROM sitrek_leads AS l
 

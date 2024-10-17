@@ -10,7 +10,7 @@ export class CustomersController {
   @Get()
   async findAll(@Res() response: Response) {
     try {
-      const records = await this.service.findAll();
+      const records = await this.service.getAll();
       return response.status(StatusCodes.OK).json({
         statusCode: StatusCodes.OK,
         message: 'Retrieved all role permissions successfully',

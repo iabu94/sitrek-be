@@ -9,7 +9,41 @@ export class CustomersService {
     private dataSource: DataSource,
     private prisma: PrismaService,
   ) {}
+  async getAll(): Promise<sitrek_customers[]> {
+    const leads = await this.prisma.sitrek_customers.findMany({
+      include: {
+        sitrek_lead_followups: true,
+        sitrek_rate_cards: true,
+        sitrek_lead_attachments: true,
+        sitrek_lead_notes: true,
+        sitrek_cities: {
+          include: {
+            sitrek_districts: true,
+          },
+        },
+        josyd_users_sitrek_customers_ownerIdTojosyd_users: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
 
+    return leads.map((lead) => ({
+      ...lead,
+      owner: lead.josyd_users_sitrek_customers_ownerIdTojosyd_users,
+      city: lead.sitrek_cities,
+      followups: lead.sitrek_lead_followups,
+      rateCards: lead.sitrek_rate_cards,
+      attachments: lead.sitrek_lead_attachments,
+      notes: lead.sitrek_lead_notes,
+      districts: lead.sitrek_cities.sitrek_districts,
+      // Remove the original fields if necessary
+      josyd_users_sitrek_leads_ownerIdTojosyd_users: undefined,
+      sitrek_cities: undefined,
+    }));
+  }
   async findAll(): Promise<sitrek_customers[]> {
     const result = await this.dataSource.query(
       `SELECT 
