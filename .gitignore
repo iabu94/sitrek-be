@@ -3,6 +3,7 @@
 /node_modules
 /build
 /uploads
+/scripts/000_user_scripts.sql
 
 # Logs
 logs
