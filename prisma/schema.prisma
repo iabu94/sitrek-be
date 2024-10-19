@@ -58,9 +58,9 @@ model josyd_user_keys {
 }
 
 model sitrek_permissions {
-  id                            Int                             @id @default(autoincrement())
+  id                            Int                             @id
   roleId                        Int?
-  name                          String                          @db.VarChar(255)
+  name                          String                          @unique(map: "name") @db.VarChar(255)
   description                   String                          @db.VarChar(255)
   sitrek_roles                  sitrek_roles?                   @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_permissions_ibfk_1")
   sitrek_user_roles_permissions sitrek_user_roles_permissions[]
@@ -69,8 +69,8 @@ model sitrek_permissions {
 }
 
 model sitrek_roles {
-  id                            Int                             @id @default(autoincrement())
-  name                          String                          @db.VarChar(255)
+  id                            Int                             @id
+  name                          String                          @unique(map: "name") @db.VarChar(255)
   description                   String                          @db.VarChar(255)
   sitrek_permissions            sitrek_permissions[]
   sitrek_user_roles_permissions sitrek_user_roles_permissions[]
@@ -110,7 +110,7 @@ model josyd_jsn_users {
 }
 
 model sitrek_cities {
-  id               Int                @id @default(autoincrement())
+  id               Int                @id
   postalCode       String             @db.VarChar(10)
   name             String             @db.VarChar(255)
   districtId       Int
@@ -122,7 +122,7 @@ model sitrek_cities {
 }
 
 model sitrek_districts {
-  id               Int              @id @default(autoincrement())
+  id               Int              @id
   name             String           @db.VarChar(255)
   provinceId       Int
   sitrek_cities    sitrek_cities[]
@@ -134,10 +134,10 @@ model sitrek_districts {
 model sitrek_lead_attachments {
   id               Int               @id @default(autoincrement())
   leadId           Int
+  customerId       Int?
   fullUrl          String            @db.Text
   verifiedById     Int?
   status           String            @db.VarChar(255)
-  customerId       Int?
   sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_1")
   josyd_users      josyd_users?      @relation(fields: [verifiedById], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_2")
   sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_3")
@@ -150,11 +150,11 @@ model sitrek_lead_attachments {
 model sitrek_lead_followups {
   id               Int               @id @default(autoincrement())
   leadId           Int
+  customerId       Int?
   contactDate      DateTime          @db.Date
   contactById      Int
   note             String            @db.Text
   status           String            @db.VarChar(255)
-  customerId       Int?
   sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_1")
   josyd_users      josyd_users       @relation(fields: [contactById], references: [id], onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_2")
   sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_3")
@@ -167,9 +167,9 @@ model sitrek_lead_followups {
 model sitrek_lead_notes {
   id               Int               @id @default(autoincrement())
   leadId           Int
+  customerId       Int?
   note             String            @db.Text
   title            String            @db.VarChar(255)
-  customerId       Int?
   sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_notes_ibfk_1")
   sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_notes_ibfk_2")
 
@@ -225,7 +225,7 @@ model sitrek_leads {
 }
 
 model sitrek_provinces {
-  id               Int                @id @default(autoincrement())
+  id               Int                @id
   name             String             @db.VarChar(255)
   sitrek_customers sitrek_customers[]
   sitrek_districts sitrek_districts[]
@@ -235,12 +235,12 @@ model sitrek_provinces {
 model sitrek_rate_cards {
   id               Int               @id @default(autoincrement())
   leadId           Int
+  customerId       Int?
   demarcation      String            @db.VarChar(255)
   catogory         String            @db.VarChar(255)
   paymentType      String            @db.VarChar(255)
   initialRate      Decimal           @db.Decimal(10, 0)
   additionalRate   Decimal           @db.Decimal(10, 0)
-  customerId       Int?
   sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_rate_cards_ibfk_1")
   sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_rate_cards_ibfk_2")
 
@@ -250,6 +250,8 @@ model sitrek_rate_cards {
 
 model sitrek_customers {
   id                                                      Int                       @id @default(autoincrement())
+  customerCode                                            String                    @unique(map: "customerCode") @db.VarChar(255)
+  leadId                                                  Int
   ownerId                                                 Int
   leadtype                                                String                    @db.VarChar(255)
   leadStatus                                              String                    @db.VarChar(255)
@@ -279,8 +281,10 @@ model sitrek_customers {
   discountType                                            String                    @db.VarChar(255)
   startDate                                               DateTime?                 @db.Date
   endDate                                                 DateTime?                 @db.Date
-  customerCode                                            String                    @unique(map: "customerCode") @db.VarChar(255)
-  leadId                                                  Int
+  bankName                                                String?                   @db.VarChar(255)
+  accountName                                             String?                   @db.VarChar(255)
+  accountNumber                                           Int?
+  branchName                                              String?                   @db.VarChar(255)
   josyd_users_sitrek_customers_salesPersonIdTojosyd_users josyd_users               @relation("sitrek_customers_salesPersonIdTojosyd_users", fields: [salesPersonId], references: [id], onUpdate: Restrict, map: "sitrek_customers_ibfk_1")
   sitrek_cities                                           sitrek_cities             @relation(fields: [cityId], references: [id], onUpdate: Restrict, map: "sitrek_customers_ibfk_2")
   sitrek_provinces                                        sitrek_provinces          @relation(fields: [provinceId], references: [id], onUpdate: Restrict, map: "sitrek_customers_ibfk_3")

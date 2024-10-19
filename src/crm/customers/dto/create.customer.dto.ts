@@ -7,7 +7,15 @@ import {
 } from '@prisma/client';
 
 export interface CreateCustomerPayload {
-  lead: sitrek_customers;
+  customer: sitrek_customers;
+  attachments: sitrek_lead_attachments[];
+  rateCards: sitrek_rate_cards[];
+  notes: sitrek_lead_notes[];
+  followups: sitrek_lead_followups[];
+}
+
+export interface UpdateCustomerPayload {
+  customer: sitrek_customers;
   attachments: sitrek_lead_attachments[];
   rateCards: sitrek_rate_cards[];
   notes: sitrek_lead_notes[];

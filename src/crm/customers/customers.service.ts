@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { sitrek_customers } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { DataSource } from 'typeorm';
+import { UpdateCustomerPayload } from './dto/create.customer.dto';
 
 @Injectable()
 export class CustomersService {
@@ -161,5 +162,80 @@ GROUP BY l.id;
     // Generate the new code with leading zeros
     const newCode = `${prefix}${newCodeNumber.toString().padStart(padding, '0')}`;
     return newCode;
+  }
+
+  async getById(id) {
+    const leadData = await this.prisma.sitrek_customers.findUnique({
+      where: { id: +id },
+      include: {
+        sitrek_lead_followups: {
+          include: {
+            josyd_users: true,
+          },
+        },
+        sitrek_rate_cards: true,
+        sitrek_lead_attachments: true,
+        sitrek_lead_notes: true,
+        sitrek_cities: {
+          include: {
+            sitrek_districts: true,
+          },
+        },
+      },
+    });
+
+    if (!leadData) {
+      return null;
+    }
+
+    // Step 4: Integrate grouped rate cards with lead data
+    const lead = {
+      ...leadData,
+      followups: leadData.sitrek_lead_followups,
+      rateCards: leadData.sitrek_rate_cards,
+      attachments: leadData.sitrek_lead_attachments,
+      notes: leadData.sitrek_lead_notes,
+      city: leadData.sitrek_cities,
+    };
+
+    // Remove original fields if necessary
+    delete lead.sitrek_lead_followups;
+    delete lead.sitrek_rate_cards;
+    delete lead.sitrek_lead_attachments;
+    delete lead.sitrek_lead_notes;
+
+    return lead;
+  }
+
+  async update(data: UpdateCustomerPayload) {
+    const lead = await this.prisma.sitrek_customers.update({
+      data: {
+        ownerId: +data.customer.ownerId,
+        leadtype: data.customer.leadtype,
+        leadStatus: data.customer.leadStatus,
+        salesPersonId: +data.customer.salesPersonId,
+        orgName: data.customer.orgName,
+        orgIdType: data.customer.orgIdType,
+        orgId: data.customer.orgId,
+        addrTitles: data.customer.addrTitles,
+        addr1: data.customer.addr1,
+        addr2: data.customer.addr2 || null,
+        cityId: +data.customer.cityId,
+        provinceId: +data.customer.provinceId,
+        country: data.customer.country,
+        adminFee: data.customer.adminFee,
+        vat: data.customer.vat,
+        sscl: data.customer.sscl,
+        svat: data.customer.svat,
+        discount: data.customer.discount,
+        startDate: new Date(data.customer.startDate),
+        endDate: new Date(data.customer.endDate),
+        bankName: data.customer.bankName,
+        accountName: data.customer.accountName,
+        accountNumber: +data.customer.accountNumber,
+        branchName: data.customer.branchName,
+      },
+      where: { id: data.customer.id },
+    });
   }
 }

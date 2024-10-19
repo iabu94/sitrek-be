@@ -495,6 +495,10 @@ GROUP BY l.id;
         ...lead,
         customerCode: '',
         leadId: data.lead.id,
+        bankName: null,
+        accountName: null,
+        accountNumber: null,
+        branchName: null,
       });
     }
 

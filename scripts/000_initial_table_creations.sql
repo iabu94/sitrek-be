@@ -175,6 +175,10 @@ CREATE TABLE sitrek_customers (
     discountType VARCHAR(255) NOT NULL,
     startDate DATE NULL,
     endDate DATE NULL,
+    bankName VARCHAR(255) NULL,
+    accountName VARCHAR(255) NULL,
+    accountNumber INT(20) NULL,
+    branchName VARCHAR(255) NULL,
     FOREIGN KEY (salesPersonId) REFERENCES josyd_users(id),
     FOREIGN KEY (cityId) REFERENCES sitrek_cities(id),
     FOREIGN KEY (provinceId) REFERENCES sitrek_provinces(id),
@@ -185,7 +189,7 @@ CREATE TABLE sitrek_customers (
 CREATE TABLE sitrek_rate_cards (
     id INT PRIMARY KEY AUTO_INCREMENT,
     leadId INT NOT NULL,
-    customerId INT NOT NULL,
+    customerId INT NULL,
     demarcation VARCHAR(255) NOT NULL,
     catogory VARCHAR(255) NOT NULL,
     paymentType VARCHAR(255) NOT NULL,
@@ -198,7 +202,7 @@ CREATE TABLE sitrek_rate_cards (
 CREATE TABLE sitrek_lead_notes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     leadId INT NOT NULL,
-    customerId INT NOT NULL,
+    customerId INT NULL,
     note TEXT NOT NULL,
     title VARCHAR(255) NOT NULL,
     FOREIGN KEY (leadId) REFERENCES sitrek_leads(id),
@@ -208,7 +212,7 @@ CREATE TABLE sitrek_lead_notes (
 CREATE TABLE sitrek_lead_followups (
     id INT PRIMARY KEY AUTO_INCREMENT,
     leadId INT NOT NULL,
-    customerId INT NOT NULL,
+    customerId INT NULL,
     contactDate DATE NOT NULL,
     contactById INT NOT NULL,
     note TEXT NOT NULL,
@@ -221,7 +225,7 @@ CREATE TABLE sitrek_lead_followups (
 CREATE TABLE sitrek_lead_attachments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     leadId INT NOT NULL,
-    customerId INT NOT NULL,
+    customerId INT NULL,
     fullUrl TEXT NOT NULL,
     verifiedById INT NULL,
     status VARCHAR(255) NOT NULL,
