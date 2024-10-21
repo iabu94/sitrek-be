@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CitiesModule } from './cities/cities.module';
+import { CustomersModule } from './crm/customers/customers.module';
 import { LeadsModule } from './crm/leads/leads.module';
 import { FileController } from './files/files.controller';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
@@ -46,6 +47,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     RolePermissionsModule,
     CitiesModule,
+    CustomersModule,
     LeadsModule,
   ],
   controllers: [AppController, FileController],
