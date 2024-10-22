@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { CitiesModule } from './cities/cities.module';
 import { CustomersModule } from './crm/customers/customers.module';
 import { LeadsModule } from './crm/leads/leads.module';
+import { RateCardsModule } from './crm/rate-cards/rate-cards.module';
 import { FileController } from './files/files.controller';
 import { RolePermissionsModule } from './role-permissions/role-permissions.module';
 import { RolesModule } from './roles/roles.module';
@@ -49,6 +50,7 @@ import { UsersModule } from './users/users.module';
     CitiesModule,
     CustomersModule,
     LeadsModule,
+    RateCardsModule,
   ],
   controllers: [AppController, FileController],
   providers: [AppService],
