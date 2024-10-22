@@ -176,6 +176,7 @@ export class LeadsService {
 
   async getAll(): Promise<sitrek_leads[]> {
     const leads = await this.prisma.sitrek_leads.findMany({
+      where: { isDeleted: false },
       include: {
         sitrek_lead_followups: true,
         sitrek_rate_cards: true,
@@ -493,7 +494,7 @@ GROUP BY l.id;
     if (lead.leadStatus === 'Converted') {
       customer = await this.customerService.create({
         ...lead,
-        customerCode: '',
+        customerCode: data.customerCode,
         leadId: data.lead.id,
         bankName: null,
         accountName: null,

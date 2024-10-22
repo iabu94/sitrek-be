@@ -27,4 +27,5 @@ export interface UpdateLeadPayload {
   rateCards: sitrek_rate_cards[];
   notes: sitrek_lead_notes[];
   followups: sitrek_lead_followups[];
+  customerCode: string;
 }

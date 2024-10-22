@@ -12,6 +12,7 @@ export class CustomersService {
   ) {}
   async getAll(): Promise<sitrek_customers[]> {
     const leads = await this.prisma.sitrek_customers.findMany({
+      where: { isDeleted: false },
       include: {
         sitrek_lead_followups: true,
         sitrek_rate_cards: true,
@@ -121,12 +122,11 @@ GROUP BY l.id;
       });
 
       if (!isCustomerExists) {
-        const customerCode = await this.generateCustomerCode();
+        // const customerCode = await this.generateCustomerCode();
 
         return await this.prisma.sitrek_customers.create({
           data: {
             ...payload,
-            customerCode: customerCode,
           },
         });
       } else {
@@ -135,34 +135,34 @@ GROUP BY l.id;
     });
   }
 
-  async generateCustomerCode(): Promise<string> {
-    const prefix = 'CUST'; // Set your desired prefix
-    const padding = 5; // Number of digits in the numeric part (e.g., 00001)
+  // async generateCustomerCode(): Promise<string> {
+  //   const prefix = 'CUST'; // Set your desired prefix
+  //   const padding = 5; // Number of digits in the numeric part (e.g., 00001)
 
-    // Fetch the customer with the highest current code
-    const latestCustomer = await this.prisma.sitrek_customers.findFirst({
-      where: {
-        customerCode: {
-          startsWith: prefix,
-        },
-      },
-      orderBy: {
-        customerCode: 'desc',
-      },
-    });
+  //   // Fetch the customer with the highest current code
+  //   const latestCustomer = await this.prisma.sitrek_customers.findFirst({
+  //     where: {
+  //       customerCode: {
+  //         startsWith: prefix,
+  //       },
+  //     },
+  //     orderBy: {
+  //       customerCode: 'desc',
+  //     },
+  //   });
 
-    let newCodeNumber = 1;
+  //   let newCodeNumber = 1;
 
-    // Extract the numeric part of the latest customer code and increment it
-    if (latestCustomer && latestCustomer.customerCode) {
-      const latestCode = latestCustomer.customerCode.replace(prefix, '');
-      newCodeNumber = parseInt(latestCode, 10) + 1;
-    }
+  //   // Extract the numeric part of the latest customer code and increment it
+  //   if (latestCustomer && latestCustomer.customerCode) {
+  //     const latestCode = latestCustomer.customerCode.replace(prefix, '');
+  //     newCodeNumber = parseInt(latestCode, 10) + 1;
+  //   }
 
-    // Generate the new code with leading zeros
-    const newCode = `${prefix}${newCodeNumber.toString().padStart(padding, '0')}`;
-    return newCode;
-  }
+  //   // Generate the new code with leading zeros
+  //   const newCode = `${prefix}${newCodeNumber.toString().padStart(padding, '0')}`;
+  //   return newCode;
+  // }
 
   async getById(id) {
     const leadData = await this.prisma.sitrek_customers.findUnique({
@@ -236,6 +236,25 @@ GROUP BY l.id;
         branchName: data.customer.branchName,
       },
       where: { id: data.customer.id },
+    });
+  }
+
+  async isCustomerCodeExists(code: string) {
+    return await this.prisma.sitrek_customers.findMany({
+      where: {
+        customerCode: code,
+      },
+    });
+  }
+
+  async delete(id: number) {
+    return await this.prisma.sitrek_customers.update({
+      where: {
+        id: +id,
+      },
+      data: {
+        isDeleted: true,
+      },
     });
   }
 }

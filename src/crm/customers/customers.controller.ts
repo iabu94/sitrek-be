@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, Res } from '@nestjs/common';
 import { response, Response } from 'express';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { CustomersService } from './customers.service';
@@ -42,6 +42,24 @@ export class CustomersController {
     }
   }
 
+  @Get('exists/code/:code')
+  async customerExists(
+    @Param() params: { code: string },
+    @Res() response: Response,
+  ) {
+    try {
+      const record = await this.service.isCustomerCodeExists(params.code);
+      return response.status(StatusCodes.OK).json(record.length > 0);
+    } catch (error) {
+      console.log(error, 'error');
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
   @Put()
   async update(
     @Body() payload: UpdateCustomerPayload,
@@ -61,5 +79,24 @@ export class CustomersController {
       error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
     });
+  }
+
+  @Delete(':id')
+  async delete(@Param() payload: { id: number }, @Res() response: Response) {
+    try {
+      const record = await this.service.delete(payload.id);
+      return response.status(StatusCodes.OK).json({
+        statusCode: StatusCodes.OK,
+        message: 'delete customer successfully',
+        body: record,
+      });
+    } catch (error) {
+      console.log(error, 'error');
+      return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Something went wrong',
+        error: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      });
+    }
   }
 }
