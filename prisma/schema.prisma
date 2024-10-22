@@ -45,51 +45,6 @@ model josyd_users {
   @@index([name], map: "idx_name")
 }
 
-model josyd_user_keys {
-  id       Int    @id @default(autoincrement()) @db.UnsignedInt
-  user_id  String @db.VarChar(150)
-  token    String @db.VarChar(255)
-  series   String @unique(map: "series")
-  invalid  Int    @db.TinyInt
-  time     String @db.VarChar(200)
-  uastring String @db.VarChar(255)
-
-  @@index([user_id], map: "user_id")
-}
-
-model sitrek_permissions {
-  id                            Int                             @id
-  roleId                        Int?
-  name                          String                          @unique(map: "name") @db.VarChar(255)
-  description                   String                          @db.VarChar(255)
-  sitrek_roles                  sitrek_roles?                   @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_permissions_ibfk_1")
-  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
-
-  @@index([roleId], map: "roleId")
-}
-
-model sitrek_roles {
-  id                            Int                             @id
-  name                          String                          @unique(map: "name") @db.VarChar(255)
-  description                   String                          @db.VarChar(255)
-  sitrek_permissions            sitrek_permissions[]
-  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
-}
-
-model sitrek_user_roles_permissions {
-  id                 Int                 @id @default(autoincrement())
-  userId             Int?
-  roleId             Int?
-  permissionId       Int?
-  josyd_users        josyd_users?        @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_1")
-  sitrek_roles       sitrek_roles?       @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_2")
-  sitrek_permissions sitrek_permissions? @relation(fields: [permissionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_3")
-
-  @@unique([userId, roleId, permissionId], map: "unique_user_role")
-  @@index([permissionId], map: "permissionId")
-  @@index([roleId], map: "roleId")
-}
-
 model josyd_jsn_users {
   id           Int     @id @default(autoincrement())
   privacy      String  @db.Text
@@ -119,133 +74,6 @@ model sitrek_cities {
   sitrek_leads     sitrek_leads[]
 
   @@index([districtId], map: "districtId")
-}
-
-model sitrek_districts {
-  id               Int              @id
-  name             String           @db.VarChar(255)
-  provinceId       Int
-  sitrek_cities    sitrek_cities[]
-  sitrek_provinces sitrek_provinces @relation(fields: [provinceId], references: [id], onUpdate: Restrict, map: "sitrek_districts_ibfk_1")
-
-  @@index([provinceId], map: "provinceId")
-}
-
-model sitrek_lead_attachments {
-  id               Int               @id @default(autoincrement())
-  leadId           Int
-  customerId       Int?
-  fullUrl          String            @db.Text
-  verifiedById     Int?
-  status           String            @db.VarChar(255)
-  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_1")
-  josyd_users      josyd_users?      @relation(fields: [verifiedById], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_2")
-  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_3")
-
-  @@index([leadId], map: "leadId")
-  @@index([verifiedById], map: "verifiedById")
-  @@index([customerId], map: "customerId")
-}
-
-model sitrek_lead_followups {
-  id               Int               @id @default(autoincrement())
-  leadId           Int
-  customerId       Int?
-  contactDate      DateTime          @db.Date
-  contactById      Int
-  note             String            @db.Text
-  status           String            @db.VarChar(255)
-  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_1")
-  josyd_users      josyd_users       @relation(fields: [contactById], references: [id], onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_2")
-  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_3")
-
-  @@index([contactById], map: "contactById")
-  @@index([leadId], map: "leadId")
-  @@index([customerId], map: "customerId")
-}
-
-model sitrek_lead_notes {
-  id               Int               @id @default(autoincrement())
-  leadId           Int
-  customerId       Int?
-  note             String            @db.Text
-  title            String            @db.VarChar(255)
-  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_notes_ibfk_1")
-  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_notes_ibfk_2")
-
-  @@index([leadId], map: "leadId")
-  @@index([customerId], map: "customerId")
-}
-
-model sitrek_leads {
-  id                                                  Int                       @id @default(autoincrement())
-  ownerId                                             Int
-  leadtype                                            String                    @db.VarChar(255)
-  leadStatus                                          String                    @db.VarChar(255)
-  salesPersonId                                       Int
-  orgName                                             String                    @db.VarChar(255)
-  orgIdType                                           String                    @db.VarChar(255)
-  orgId                                               String                    @db.VarChar(255)
-  addrTitles                                          String                    @db.VarChar(255)
-  isDeleted                                           Boolean                   @default(false)
-  addr1                                               String                    @db.VarChar(255)
-  addr2                                               String                    @db.VarChar(255)
-  cityId                                              Int
-  provinceId                                          Int
-  country                                             String                    @db.VarChar(255)
-  contactNIC                                          String                    @db.VarChar(255)
-  contactName                                         String                    @db.VarChar(255)
-  contactDesignation                                  String                    @db.VarChar(255)
-  contactEmail                                        String                    @db.VarChar(255)
-  contact1                                            String                    @db.VarChar(255)
-  contact2                                            String                    @db.VarChar(255)
-  adminFee                                            Decimal                   @db.Decimal(10, 2)
-  adminFeeType                                        String                    @db.VarChar(255)
-  vat                                                 Decimal                   @db.Decimal(10, 2)
-  sscl                                                Decimal                   @db.Decimal(10, 2)
-  svat                                                Decimal                   @db.Decimal(10, 2)
-  discount                                            Decimal                   @db.Decimal(10, 2)
-  discountType                                        String                    @db.VarChar(255)
-  startDate                                           DateTime?                 @db.Date
-  endDate                                             DateTime?                 @db.Date
-  sitrek_customers                                    sitrek_customers[]
-  sitrek_lead_attachments                             sitrek_lead_attachments[]
-  sitrek_lead_followups                               sitrek_lead_followups[]
-  sitrek_lead_notes                                   sitrek_lead_notes[]
-  josyd_users_sitrek_leads_salesPersonIdTojosyd_users josyd_users               @relation("sitrek_leads_salesPersonIdTojosyd_users", fields: [salesPersonId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_1")
-  sitrek_cities                                       sitrek_cities             @relation(fields: [cityId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_2")
-  sitrek_provinces                                    sitrek_provinces          @relation(fields: [provinceId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_3")
-  josyd_users_sitrek_leads_ownerIdTojosyd_users       josyd_users               @relation("sitrek_leads_ownerIdTojosyd_users", fields: [ownerId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_4")
-  sitrek_rate_cards                                   sitrek_rate_cards[]
-
-  @@index([cityId], map: "cityId")
-  @@index([ownerId], map: "ownerId")
-  @@index([provinceId], map: "provinceId")
-  @@index([salesPersonId], map: "salesPersonId")
-}
-
-model sitrek_provinces {
-  id               Int                @id
-  name             String             @db.VarChar(255)
-  sitrek_customers sitrek_customers[]
-  sitrek_districts sitrek_districts[]
-  sitrek_leads     sitrek_leads[]
-}
-
-model sitrek_rate_cards {
-  id               Int               @id @default(autoincrement())
-  leadId           Int
-  customerId       Int?
-  demarcation      String            @db.VarChar(255)
-  catogory         String            @db.VarChar(255)
-  paymentType      String            @db.VarChar(255)
-  initialRate      Decimal           @db.Decimal(10, 0)
-  additionalRate   Decimal           @db.Decimal(10, 0)
-  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_rate_cards_ibfk_1")
-  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_rate_cards_ibfk_2")
-
-  @@index([leadId], map: "leadId")
-  @@index([customerId], map: "customerId")
 }
 
 model sitrek_customers {
@@ -296,8 +124,168 @@ model sitrek_customers {
   sitrek_rate_cards                                       sitrek_rate_cards[]
 
   @@index([cityId], map: "cityId")
+  @@index([leadId], map: "leadId")
   @@index([ownerId], map: "ownerId")
   @@index([provinceId], map: "provinceId")
   @@index([salesPersonId], map: "salesPersonId")
+}
+
+model sitrek_districts {
+  id               Int              @id
+  name             String           @db.VarChar(255)
+  provinceId       Int
+  sitrek_cities    sitrek_cities[]
+  sitrek_provinces sitrek_provinces @relation(fields: [provinceId], references: [id], onUpdate: Restrict, map: "sitrek_districts_ibfk_1")
+
+  @@index([provinceId], map: "provinceId")
+}
+
+model sitrek_lead_attachments {
+  id               Int               @id @default(autoincrement())
+  leadId           Int
+  customerId       Int?
+  fullUrl          String            @db.Text
+  verifiedById     Int?
+  status           String            @db.VarChar(255)
+  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_1")
+  josyd_users      josyd_users?      @relation(fields: [verifiedById], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_2")
+  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_attachments_ibfk_3")
+
+  @@index([customerId], map: "customerId")
   @@index([leadId], map: "leadId")
+  @@index([verifiedById], map: "verifiedById")
+}
+
+model sitrek_lead_followups {
+  id               Int               @id @default(autoincrement())
+  leadId           Int
+  customerId       Int?
+  contactDate      DateTime          @db.Date
+  contactById      Int
+  note             String            @db.Text
+  status           String            @db.VarChar(255)
+  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_1")
+  josyd_users      josyd_users       @relation(fields: [contactById], references: [id], onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_2")
+  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_followups_ibfk_3")
+
+  @@index([contactById], map: "contactById")
+  @@index([customerId], map: "customerId")
+  @@index([leadId], map: "leadId")
+}
+
+model sitrek_lead_notes {
+  id               Int               @id @default(autoincrement())
+  leadId           Int
+  customerId       Int?
+  note             String            @db.Text
+  title            String            @db.VarChar(255)
+  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_lead_notes_ibfk_1")
+  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_lead_notes_ibfk_2")
+
+  @@index([customerId], map: "customerId")
+  @@index([leadId], map: "leadId")
+}
+
+model sitrek_leads {
+  id                                                  Int                       @id @default(autoincrement())
+  ownerId                                             Int
+  leadtype                                            String                    @db.VarChar(255)
+  leadStatus                                          String                    @db.VarChar(255)
+  salesPersonId                                       Int
+  orgName                                             String                    @db.VarChar(255)
+  orgIdType                                           String                    @db.VarChar(255)
+  orgId                                               String                    @db.VarChar(255)
+  addrTitles                                          String                    @db.VarChar(255)
+  isDeleted                                           Boolean                   @default(false)
+  addr1                                               String                    @db.VarChar(255)
+  addr2                                               String                    @db.VarChar(255)
+  cityId                                              Int
+  provinceId                                          Int
+  country                                             String                    @db.VarChar(255)
+  contactNIC                                          String                    @db.VarChar(255)
+  contactName                                         String                    @db.VarChar(255)
+  contactDesignation                                  String                    @db.VarChar(255)
+  contactEmail                                        String                    @db.VarChar(255)
+  contact1                                            String                    @db.VarChar(255)
+  contact2                                            String                    @db.VarChar(255)
+  adminFee                                            Decimal                   @db.Decimal(10, 2)
+  adminFeeType                                        String                    @db.VarChar(255)
+  vat                                                 Decimal                   @db.Decimal(10, 2)
+  sscl                                                Decimal                   @db.Decimal(10, 2)
+  svat                                                Decimal                   @db.Decimal(10, 2)
+  discount                                            Decimal                   @db.Decimal(10, 2)
+  discountType                                        String                    @db.VarChar(255)
+  startDate                                           DateTime?                 @db.Date
+  endDate                                             DateTime?                 @db.Date
+  sitrek_customers                                    sitrek_customers[]
+  sitrek_lead_attachments                             sitrek_lead_attachments[]
+  sitrek_lead_followups                               sitrek_lead_followups[]
+  sitrek_lead_notes                                   sitrek_lead_notes[]
+  josyd_users_sitrek_leads_salesPersonIdTojosyd_users josyd_users               @relation("sitrek_leads_salesPersonIdTojosyd_users", fields: [salesPersonId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_1")
+  sitrek_cities                                       sitrek_cities             @relation(fields: [cityId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_2")
+  sitrek_provinces                                    sitrek_provinces          @relation(fields: [provinceId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_3")
+  josyd_users_sitrek_leads_ownerIdTojosyd_users       josyd_users               @relation("sitrek_leads_ownerIdTojosyd_users", fields: [ownerId], references: [id], onUpdate: Restrict, map: "sitrek_leads_ibfk_4")
+  sitrek_rate_cards                                   sitrek_rate_cards[]
+
+  @@index([cityId], map: "cityId")
+  @@index([ownerId], map: "ownerId")
+  @@index([provinceId], map: "provinceId")
+  @@index([salesPersonId], map: "salesPersonId")
+}
+
+model sitrek_permissions {
+  id                            Int                             @id
+  roleId                        Int?
+  name                          String                          @unique(map: "name") @db.VarChar(255)
+  description                   String                          @db.VarChar(255)
+  sitrek_roles                  sitrek_roles?                   @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_permissions_ibfk_1")
+  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
+
+  @@index([roleId], map: "roleId")
+}
+
+model sitrek_provinces {
+  id               Int                @id
+  name             String             @db.VarChar(255)
+  sitrek_customers sitrek_customers[]
+  sitrek_districts sitrek_districts[]
+  sitrek_leads     sitrek_leads[]
+}
+
+model sitrek_rate_cards {
+  id               Int               @id @default(autoincrement())
+  leadId           Int
+  customerId       Int?
+  demarcation      String            @db.VarChar(255)
+  catogory         String            @db.VarChar(255)
+  paymentType      String            @db.VarChar(255)
+  initialRate      Decimal           @db.Decimal(10, 0)
+  additionalRate   Decimal           @db.Decimal(10, 0)
+  sitrek_leads     sitrek_leads      @relation(fields: [leadId], references: [id], onUpdate: Restrict, map: "sitrek_rate_cards_ibfk_1")
+  sitrek_customers sitrek_customers? @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_rate_cards_ibfk_2")
+
+  @@index([customerId], map: "customerId")
+  @@index([leadId], map: "leadId")
+}
+
+model sitrek_roles {
+  id                            Int                             @id
+  name                          String                          @unique(map: "name") @db.VarChar(255)
+  description                   String                          @db.VarChar(255)
+  sitrek_permissions            sitrek_permissions[]
+  sitrek_user_roles_permissions sitrek_user_roles_permissions[]
+}
+
+model sitrek_user_roles_permissions {
+  id                 Int                 @id @default(autoincrement())
+  userId             Int?
+  roleId             Int?
+  permissionId       Int?
+  josyd_users        josyd_users?        @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_1")
+  sitrek_roles       sitrek_roles?       @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_2")
+  sitrek_permissions sitrek_permissions? @relation(fields: [permissionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sitrek_user_roles_permissions_ibfk_3")
+
+  @@unique([userId, roleId, permissionId], map: "unique_user_role")
+  @@index([permissionId], map: "permissionId")
+  @@index([roleId], map: "roleId")
 }
