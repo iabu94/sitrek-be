@@ -29,7 +29,8 @@ export class UsersService {
       u.username as username,
       u.email as email
     FROM josyd_jsn_users as r
-    INNER JOIN josyd_users as u ON r.id = u.id`,
+    INNER JOIN josyd_users as u ON r.id = u.id
+    WHERE u.email like '%certislanka.com%' OR u.email like '%sitrekgroup.com%'`,
     );
     return result;
   }
